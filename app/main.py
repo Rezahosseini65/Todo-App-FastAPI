@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from contextlib import asynccontextmanager
 
-from routers import router as app_router
+from app.routers import router as app_router
 
 
 @asynccontextmanager
@@ -12,7 +12,6 @@ async def lifespan(app: FastAPI):
     print("Application Shutdown")
 
 app = FastAPI(
-    lifespan=lifespan,
     title="Simple Todo App Api",
     description="this is a simple blog app with minimal usage of authentication and post managing",
     version="0.0.1",
@@ -22,7 +21,8 @@ app = FastAPI(
         "email": "hosseini.reza65@gmail.com",
     },
     license_info={"name": "MIT"},
-    docs_url="/swagger",
+    docs_url="/docs",
+    lifespan=lifespan
     )
 
 app.include_router(app_router)

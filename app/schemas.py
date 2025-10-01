@@ -14,6 +14,7 @@ class TaskBaseSchema(BaseModel):
         description="Title of the task (maximum 64 characters)"
     )
     description: Optional[str] = Field(
+        None,
         max_length=500,
         description="Detailed description of the task (optional, maximum 500 characters)"
     )
