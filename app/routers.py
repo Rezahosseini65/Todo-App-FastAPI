@@ -3,7 +3,8 @@ from fastapi import (
     Path, 
     Depends, 
     HTTPException, 
-    status
+    status,
+    Query
 )
 
 from sqlalchemy.orm import Session
@@ -22,12 +23,54 @@ router = APIRouter(tags=['tasks'])
 
 
 @router.get("/tasks/", response_model=List[ResponseTaskSchema])
-async def list_task(db: Session = Depends(get_db)):
+async def list_task(
+        db: Session = Depends(get_db),
+        completed: bool = Query
+            (
+                None, 
+                description="Filter tasks by completion status"
+            ),
+        limit : int = Query
+            (
+                default=10, 
+                gt=0, 
+                le=50, 
+                description="Limiting the number of items to retrieve"
+            ),
+        offset : int = Query(
+            default=0,
+            ge=0,
+            description="Use for paginating based on passed items"
+        )
+    ):
     """
-    Retrieve all tasks from the database.
+    Retrieve a paginated list of tasks from the database.
+
+    Query Parameters:
+    - completed (bool, optional): 
+        Filter tasks by their completion status.
+        If `true`, only completed tasks are returned. 
+        If `false`, only pending tasks are returned. 
+        If omitted, all tasks are returned.
+    - limit (int, default=10, max=50): 
+        Maximum number of tasks to retrieve in a single request.
+    - offset (int, default=0): 
+        Number of tasks to skip before starting to collect the result set 
+        (useful for pagination).
+
+    Returns:
+        List[ResponseTaskSchema]: A list of tasks that match the query.
     """
-    tasks = db.query(TaskModel).all()
-    return tasks
+
+
+    if completed is not None:
+        tasks = db.query(TaskModel).filter_by(is_completed=completed)
+    else:    
+        tasks = db.query(TaskModel)
+    
+    tasks = tasks.limit(limit).offset(offset)
+
+    return tasks.all()
 
 
 @router.get("/tasks/{id}/", response_model=ResponseTaskSchema)
