@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from contextlib import asynccontextmanager
 
-from app.routers import router as app_router
+from app.tasks.routers import router as app_router
 
 
 @asynccontextmanager

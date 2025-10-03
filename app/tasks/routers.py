@@ -12,8 +12,8 @@ from sqlalchemy.exc import IntegrityError
 from typing import List
 
 from app.core.database import get_db
-from app.models import TaskModel
-from app.schemas import (
+from app.tasks.models import TaskModel
+from app.tasks.schemas import (
     CreateTaskSchema,
     UpdateTaskSchema,
     ResponseTaskSchema

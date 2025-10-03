@@ -11,7 +11,7 @@ from alembic import context
 from dotenv import load_dotenv
 
 from app.core.database import Base
-from app.models import *
+from app.tasks.models import *
 from app.users.models import *
 
 # this is the Alembic Config object, which provides
