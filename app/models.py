@@ -5,8 +5,10 @@ from sqlalchemy import (
     Boolean, 
     func, 
     Text, 
-    DateTime
+    DateTime,
+    ForeignKey
 )
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -14,6 +16,10 @@ from app.core.database import Base
 class TaskModel(Base):
     __tablename__="tasks"
 
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id")
+    )
     id = Column(
         Integer, 
         primary_key=True,
@@ -40,6 +46,8 @@ class TaskModel(Base):
         server_default=func.now(),
         server_onupdate=func.now()
     )
+
+    user = relationship("User", back_populates="tasks")
 
     def __repr__(self):
         return f'Task(id={self.id}, title={self.title}, is_done={self.is_completed})'
