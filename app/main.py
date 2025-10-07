@@ -2,7 +2,8 @@ from fastapi import FastAPI
 
 from contextlib import asynccontextmanager
 
-from app.tasks.routers import router as app_router
+from app.tasks.routers import router as task_router
+from app.users.routres import router as user_router
 
 
 @asynccontextmanager
@@ -25,4 +26,5 @@ app = FastAPI(
     lifespan=lifespan
     )
 
-app.include_router(app_router)
+app.include_router(task_router)
+app.include_router(user_router)

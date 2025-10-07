@@ -1,3 +1,5 @@
+from passlib.context import CryptContext
+
 from sqlalchemy import(
     Column,
     Integer,
@@ -9,6 +11,8 @@ from sqlalchemy import(
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class User(Base):
@@ -25,7 +29,7 @@ class User(Base):
         unique=True
     )
     password = Column(
-        String(255),
+        String,
         nullable=False
     )
     is_active = Column(
@@ -44,6 +48,20 @@ class User(Base):
 
     tasks = relationship("TaskModel", back_populates="user")
 
+
     def __repr__(self):
         return f'id={self.id!r}--username={self.username!r}'
+    
+    def hash_password(self, plain_password: str) -> str:
+        """Hashes the given password using bcrypt."""
+        return pwd_context.hash(plain_password)
+        
+    def set_password(self, plain_text: str) -> None:
+        """
+        Hashes the given plain-text password and stores it in the `password` field.
+        The raw password is never saved directly.
+        """
+        self.password = self.hash_password(plain_text)
+    
+    
 
