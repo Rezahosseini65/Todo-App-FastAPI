@@ -3,7 +3,8 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from app.tasks.routers import router as task_router
-from app.users.routres import router as user_router
+from app.users.routers import router as user_router
+from app.auths.routers import router as auth_router
 
 
 @asynccontextmanager
@@ -28,3 +29,4 @@ app = FastAPI(
 
 app.include_router(task_router)
 app.include_router(user_router)
+app.include_router(auth_router)
