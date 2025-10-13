@@ -48,9 +48,9 @@ class User(Base):
 
     tasks = relationship("TaskModel", back_populates="user")
 
-
     def __repr__(self):
         return f'id={self.id!r}--username={self.username!r}'
+    
     
     def hash_password(self, plain_password: str) -> str:
         """Hashes the given password using bcrypt."""

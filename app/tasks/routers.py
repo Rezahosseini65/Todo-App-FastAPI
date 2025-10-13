@@ -13,6 +13,8 @@ from typing import List
 
 from app.core.database import get_db
 from app.tasks.models import TaskModel
+from app.users.models import User
+from app.auths.jwt_auth import get_current_user
 from app.tasks.schemas import (
     CreateTaskSchema,
     UpdateTaskSchema,
@@ -41,7 +43,8 @@ async def list_task(
             default=0,
             ge=0,
             description="Use for paginating based on passed items"
-        )
+        ),
+        user : User = Depends(get_current_user)
     ):
     """
     Retrieve a paginated list of tasks from the database.
@@ -64,9 +67,9 @@ async def list_task(
 
 
     if completed is not None:
-        tasks = db.query(TaskModel).filter_by(is_completed=completed)
+        tasks = db.query(TaskModel).filter_by(is_completed=completed, user_id=user.id)
     else:    
-        tasks = db.query(TaskModel)
+        tasks = db.query(TaskModel).filter_by(user_id=user.id)
     
     tasks = tasks.limit(limit).offset(offset)
 
@@ -74,13 +77,17 @@ async def list_task(
 
 
 @router.get("/tasks/{id}/", response_model=ResponseTaskSchema)
-async def detail_task(id: int = Path(...), db: Session = Depends(get_db)):
+async def detail_task(
+    id: int = Path(...), 
+    db: Session= Depends(get_db),
+    user: User= Depends(get_current_user)
+    ):
     """
     Retrieve a specific task by its ID.
 
     Raises 404 if the task is not found.
     """
-    task = db.query(TaskModel).filter_by(id=id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=id, user_id=user.id).one_or_none()
 
     if not task:
         raise HTTPException(
@@ -95,12 +102,18 @@ async def detail_task(id: int = Path(...), db: Session = Depends(get_db)):
 
 
 @router.post("/tasks/", response_model=ResponseTaskSchema, status_code=status.HTTP_201_CREATED)
-async def create_task(request: CreateTaskSchema, db: Session = Depends(get_db)):
+async def create_task(
+    request: CreateTaskSchema, 
+    db: Session = Depends(get_db),
+    user: User= Depends(get_current_user)
+    ):
     """
     Create a new task.
     Returns the created task or raises 400 if an integrity error occurs.
     """
-    new_task = TaskModel(**request.model_dump())
+    data = request.model_dump()
+    data.update({"user_id":user.id})
+    new_task = TaskModel(**data)
     db.add(new_task)
 
     try:
@@ -120,12 +133,17 @@ async def create_task(request: CreateTaskSchema, db: Session = Depends(get_db)):
     
 
 @router.put("/tasks/{id}/", response_model=ResponseTaskSchema)
-async def update_task(request: UpdateTaskSchema, id: int = Path(...), db: Session = Depends(get_db)):
+async def update_task(
+    request: UpdateTaskSchema, 
+    id: int = Path(...), 
+    db: Session = Depends(get_db),
+    user: User= Depends(get_current_user)
+    ):
     """
     Update an existing task by its ID.
     Raises 404 if the task is not found.
     """
-    task = db.query(TaskModel).filter_by(id=id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=id, user_id=user.id).one_or_none()
 
     if not task:
         raise HTTPException(
@@ -146,12 +164,16 @@ async def update_task(request: UpdateTaskSchema, id: int = Path(...), db: Sessio
 
 
 @router.delete("/tasks/{id}/")
-async def delete_task(id: int = Path(...), db: Session = Depends(get_db)):
+async def delete_task(
+    id: int = Path(...), 
+    db: Session = Depends(get_db),
+    user: User= Depends(get_current_user)
+    ):
     """
     Delete a task by its ID.
     Returns a success message or raises 404 if the task is not found.
     """
-    task = db.query(TaskModel).filter_by(id=id).one_or_none()
+    task = db.query(TaskModel).filter_by(id=id, user_id=user.id).one_or_none()
 
     if not task:
         raise HTTPException(

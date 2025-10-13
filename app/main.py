@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.tasks.routers import router as task_router
 from app.users.routers import router as user_router
 from app.auths.routers import router as auth_router
+from app.auths.jwt_auth import get_current_user
 
 
 @asynccontextmanager

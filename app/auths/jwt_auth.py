@@ -3,7 +3,7 @@ from typing import Dict
 
 import jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -15,8 +15,8 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 10
 
-# OAuth2 scheme to read "Authorization: Bearer <token>"
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login/")
+security = HTTPBearer(auto_error=False)
+
 
 def generate_access_token(data: Dict, expires_delta: int = ACCESS_TOKEN_EXPIRE_MINUTES)-> str:
     """
@@ -82,12 +82,20 @@ def verify_access_token(token: str, expected_type: str = "access"):
 
 
 def get_current_user(
-    token: str= Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
 ):
     """
     Dependency to get the currently authenticated user from a valid JWT token.
     """
+    # Check if credentials are not provided
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed, token not provided",
+        )
+
+    token = credentials.credentials
     payload = verify_access_token(token, expected_type="access")
     if not payload:
         raise HTTPException(
