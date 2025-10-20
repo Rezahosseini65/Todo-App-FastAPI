@@ -39,7 +39,6 @@ class UpdateTaskSchema(TaskBaseSchema):
     """
     pass
 
-
 class ResponseTaskSchema(TaskBaseSchema):
     """
     Schema for returning task data in API responses.
